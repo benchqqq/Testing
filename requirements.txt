@@ -1,2 +1,3 @@
 flet
-docx2pdf
+reportlab
+python-docx
