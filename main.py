@@ -1,5 +1,7 @@
 import flet as ft
-from docx2pdf import convert
+from docx import Document
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 def main(page: ft.Page):
     # إعدادات الصفحة
@@ -24,6 +26,23 @@ def main(page: ft.Page):
             file_name.value = "لم يتم اختيار أي ملف."
             file_name.update()
 
+    # دالة لتحويل محتوى Word إلى PDF
+    def convert_docx_to_pdf(docx_path, pdf_path):
+        doc = Document(docx_path)
+        c = canvas.Canvas(pdf_path, pagesize=letter)
+        width, height = letter
+        y_position = height - 40  # بدء الكتابة من أعلى الصفحة
+
+        for para in doc.paragraphs:
+            if y_position < 40:  # إذا وصلنا إلى أسفل الصفحة، ننشئ صفحة جديدة
+                c.showPage()
+                y_position = height - 40
+
+            c.drawString(40, y_position, para.text)
+            y_position -= 15  # التباعد بين الأسطر
+
+        c.save()
+
     # دالة تُنفذ عند النقر على الزر
     def convert_to_pdf(e):
         if not selected_file_path:
@@ -33,7 +52,7 @@ def main(page: ft.Page):
             try:
                 # تحويل الملف
                 output_file = selected_file_path.replace(".docx", ".pdf")
-                convert(selected_file_path, output_file)
+                convert_docx_to_pdf(selected_file_path, output_file)
                 page.clean()  # مسح المحتوى الحالي
                 page.add(
                     ft.Column(
